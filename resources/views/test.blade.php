@@ -11,6 +11,7 @@
 <body>
     <h1 class="bg-red-400"></h1>
     <div id="test"></div>
+    <div id="chat"></div>
 
 </body>
 </html>

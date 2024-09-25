@@ -6,10 +6,9 @@ import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 
 import React from 'react';
-import ReactDOM from 'react-dom';
 import BtnGroup from './Components/ButtonGroup';
-
 import TaskBoard from './Components/Taskboard';
+// import Chat from './Components/chatbox/Chat'; // Assure-toi que le chemin est correct
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -18,7 +17,6 @@ createInertiaApp({
     resolve: (name) => resolvePageComponent(`./Pages/${name}.jsx`, import.meta.glob('./Pages/**/*.jsx')),
     setup({ el, App, props }) {
         const root = createRoot(el);
-
         root.render(<App {...props} />);
     },
     progress: {
@@ -26,9 +24,14 @@ createInertiaApp({
     },
 });
 
+// Vérifie si l'élément avec l'ID 'test' existe
 if (document.getElementById('test')) {
     const root = createRoot(document.getElementById('test'));
     root.render(<TaskBoard />); // Utilisation du composant TaskBoard
 }
 
-export default TaskBoard;
+// // Exemple d'utilisation du composant Chat
+// if (document.getElementById('chat')) {
+//     const root = createRoot(document.getElementById('chat'));
+//     root.render(<Chat />); // Assure-toi que tu utilises le bon composant ici
+// }

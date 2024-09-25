@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+
 
 class User extends Authenticatable
 {
@@ -20,6 +20,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'img_profile', // Ajouté pour le profil
+        'role', // Ajouté pour le rôle
     ];
 
     /**
@@ -44,4 +46,23 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    // Méthodes pour définir des relations
+    public function messagesSent()
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
+
+    public function messagesReceived()
+    {
+        return $this->hasMany(Message::class, 'receiver_id');
+    }
+
+    // Relation many-to-many avec les équipes
+    public function teams()
+    {
+        return $this->belongsToMany(Team::class, 'team_user')->withPivot('role');
+    }
+
+
 }

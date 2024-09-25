@@ -1,112 +1,123 @@
-import GuestLayout from '@/Layouts/GuestLayout';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import { Head, Link, useForm } from '@inertiajs/react';
+import React, { useState } from 'react';
+import { Inertia } from '@inertiajs/inertia';
 
-export default function Register() {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        name: '',
-        email: '',
-        password: '',
-        password_confirmation: '',
-    });
+const Register = () => {
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [passwordConfirmation, setPasswordConfirmation] = useState('');
+    const [errors, setErrors] = useState({});
+    const [passwordValid, setPasswordValid] = useState(false); // État pour la validation du mot de passe
 
-    const submit = (e) => {
+    // Fonction pour vérifier si le mot de passe respecte les critères
+    const validatePassword = (password) => {
+        const isValidLength = password.length >= 6;
+        const hasUpperCase = /[A-Z]/.test(password);
+        const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+        const hasThreeDigits = /\d.*\d.*\d/.test(password); // Vérifie qu'il y a au moins 3 chiffres
+
+        return isValidLength && hasUpperCase && hasSpecialChar && hasThreeDigits;
+    };
+
+    // Gestion de la soumission du formulaire
+    const handleSubmit = (e) => {
         e.preventDefault();
 
-        post(route('register'), {
-            onFinish: () => reset('password', 'password_confirmation'),
-        });
+        // Vérifier si le mot de passe est valide avant d'envoyer le formulaire
+        if (validatePassword(password)) {
+            Inertia.post('/register', {
+                name,
+                email,
+                password,
+                password_confirmation: passwordConfirmation,
+            }, {
+                onError: (error) => {
+                    setErrors(error);
+                },
+            });
+        } else {
+            setErrors({ password: 'Le mot de passe ne respecte pas les critères.' });
+        }
+    };
+
+    // Gérer les changements de mot de passe
+    const handlePasswordChange = (e) => {
+        const newPassword = e.target.value;
+        setPassword(newPassword);
+        setPasswordValid(validatePassword(newPassword));
     };
 
     return (
-        <GuestLayout>
-            <Head title="Register" />
-
-            <form onSubmit={submit}>
-                <div>
-                    <InputLabel htmlFor="name" value="Name" />
-
-                    <TextInput
+        <div className="max-w-md mx-auto bg-white p-8 border border-gray-300 rounded-lg shadow-md">
+            <h1 className="text-2xl font-bold mb-6 text-center">Créer un compte</h1>
+            <form onSubmit={handleSubmit}>
+                <div className="mb-4">
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">Nom</label>
+                    <input
+                        type="text"
                         id="name"
-                        name="name"
-                        value={data.name}
-                        className="mt-1 block w-full"
-                        autoComplete="name"
-                        isFocused={true}
-                        onChange={(e) => setData('name', e.target.value)}
-                        required
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                     />
-
-                    <InputError message={errors.name} className="mt-2" />
+                    {errors.name && <div className="text-red-500 text-sm">{errors.name}</div>}
                 </div>
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="email" value="Email" />
-
-                    <TextInput
-                        id="email"
+                <div className="mb-4">
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+                    <input
                         type="email"
-                        name="email"
-                        value={data.email}
-                        className="mt-1 block w-full"
-                        autoComplete="username"
-                        onChange={(e) => setData('email', e.target.value)}
-                        required
+                        id="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                     />
-
-                    <InputError message={errors.email} className="mt-2" />
+                    {errors.email && <div className="text-red-500 text-sm">{errors.email}</div>}
                 </div>
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
-
-                    <TextInput
+                <div className="mb-4">
+                    <label htmlFor="password" className="block text-sm font-medium text-gray-700">Mot de passe</label>
+                    <input
+                        type="password"
                         id="password"
-                        type="password"
-                        name="password"
-                        value={data.password}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        onChange={(e) => setData('password', e.target.value)}
-                        required
+                        value={password}
+                        onChange={handlePasswordChange}
+                        className={`mt-1 block w-full border ${passwordValid ? 'border-green-500' : 'border-red-500'} rounded-md shadow-sm p-2`}
                     />
-
-                    <InputError message={errors.password} className="mt-2" />
+                    <div className={`mt-2 text-sm ${passwordValid ? 'text-green-500' : 'text-red-500'}`}>
+                        Le mot de passe doit contenir au moins :
+                        <ul className="list-disc list-inside">
+                            <li className={password.length >= 6 ? 'text-green-500' : 'text-red-500'}>6 caractères</li>
+                            <li className={/[A-Z]/.test(password) ? 'text-green-500' : 'text-red-500'}>1 majuscule</li>
+                            <li className={/[!@#$%^&*(),.?":{}|<>]/.test(password) ? 'text-green-500' : 'text-red-500'}>1 caractère spécial</li>
+                            <li className={/\d.*\d.*\d/.test(password) ? 'text-green-500' : 'text-red-500'}>3 chiffres</li>
+                        </ul>
+                    </div>
+                    {errors.password && <div className="text-red-500 text-sm">{errors.password}</div>}
                 </div>
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="password_confirmation" value="Confirm Password" />
-
-                    <TextInput
+                <div className="mb-6">
+                    <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700">Confirmer le mot de passe</label>
+                    <input
+                        type="password"
                         id="password_confirmation"
-                        type="password"
-                        name="password_confirmation"
-                        value={data.password_confirmation}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        onChange={(e) => setData('password_confirmation', e.target.value)}
-                        required
+                        value={passwordConfirmation}
+                        onChange={(e) => setPasswordConfirmation(e.target.value)}
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                     />
-
-                    <InputError message={errors.password_confirmation} className="mt-2" />
+                    {errors.password_confirmation && <div className="text-red-500 text-sm">{errors.password_confirmation}</div>}
                 </div>
 
-                <div className="flex items-center justify-end mt-4">
-                    <Link
-                        href={route('login')}
-                        className="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                        Already registered?
-                    </Link>
-
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Register
-                    </PrimaryButton>
-                </div>
+                <button
+                    type="submit"
+                    className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-white font-medium text-lg ${passwordValid ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-400 cursor-not-allowed'}`}
+                    disabled={!passwordValid}
+                >
+                    Créer un compte
+                </button>
             </form>
-        </GuestLayout>
+        </div>
     );
-}
+};
+
+export default Register;
